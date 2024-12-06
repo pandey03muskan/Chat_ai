@@ -183,7 +183,7 @@ useEffect(() => {
   if (messagesEndRef.current) {
     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
   }
-}, messages);
+}, [messages]);
 
 
   return (
@@ -215,7 +215,7 @@ useEffect(() => {
               }}>
 
                 <div style={{width:'48%',paddingLeft:'1.5rem'}}>
-                 <h1 style={{color: "rgb(115, 83, 229)" }}>Let's Chat With PDF</h1>
+                 <h1 style={{color: "rgb(115, 83, 229)" }}>Let Chat With PDF</h1>
                 </div>
 
                 <Box
