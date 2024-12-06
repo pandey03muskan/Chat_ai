@@ -36,11 +36,11 @@ const Sidebar = () => {
     setActiveIndex(index);
   };
 
-  useEffect(() => {
-    const activeMenuItem = menuItems.findIndex((item) => item.path === router.pathname);
-    console.log(router.pathname)
-    setActiveIndex(activeMenuItem);
-  }, [router.pathname]);
+  // useEffect(() => {
+  //   const activeMenuItem = menuItems.findIndex((item) => item.path === router.pathname);
+  //   console.log(router.pathname)
+  //   setActiveIndex(activeMenuItem);
+  // }, [router.pathname]);
 
   const menuItems = [
     { text: "Chat With PDF", icon: <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24">
