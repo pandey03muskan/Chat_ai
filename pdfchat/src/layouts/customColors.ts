@@ -1,0 +1,17 @@
+export const customColors={
+    lightblack:'#434648',
+    lightlightgray:'#FFFFFFB3',
+    lightgray:'#79828d',
+    darkgray:'gray',
+    white:'white',
+    opacitygray:'rgb(87, 94, 104)',
+    opacitylightgray:'#E6E8FA',
+    opacityblack:'rgb(0,0,0,0.5)',
+    opacitylightblack:'rgb(67, 70, 72)',
+    midgray:'#b0b0b0',
+    linkblue:'#558ED5',
+    opacityblue:'rgb(184, 226, 242,0.2)',
+    opacitylightblue:'#e6e8fa',
+    purple:'#7851a9',
+    opacitypurple:'rgb(120, 81, 169,0.2)',
+ }
