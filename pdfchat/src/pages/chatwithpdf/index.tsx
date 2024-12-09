@@ -53,10 +53,13 @@ const ChatWithPDF = () => {
   });
  
   const resetUpload = () => {
-    setStep("upload");
-    setFileName("");
-    setFileObject(undefined);
-    setIsFileUploaded("initial");
+    if (!isUserPromptDistable){
+      setStep("upload");
+      setFileName("");
+      setFileObject(undefined);
+      setIsFileUploaded("initial");
+      setMessages([])
+    }
   };
  
 const handleSendMessage = () => {
@@ -186,6 +189,14 @@ useEffect(() => {
 }, [messages]);
 
 
+//to clear the chat
+const handleClear=()=>{
+  if (!isUserPromptDistable){
+    setMessages([])
+  }
+}
+
+
   return (
     <div>
       <div style={{ marginTop: "0.5rem", width: "100%", padding: "1rem 0.5rem"}}>
@@ -215,7 +226,7 @@ useEffect(() => {
               }}>
 
                 <div style={{width:'48%',paddingLeft:'1.5rem'}}>
-                 <h1 style={{color: "rgb(115, 83, 229)" }}>Let Chat With PDF</h1>
+                 <h1 style={{color: "rgb(115, 83, 229)" }}>Chat With PDF</h1>
                 </div>
 
                 <Box
@@ -298,7 +309,15 @@ useEffect(() => {
                        {fileName} uploaded successfully!
                      </div>
 
-                     <Button sx={{ marginTop: 2,color:'rgb(115, 83, 229)',border:'1px solid rgb(115, 83, 229)',fontFamily:'Poppins'}} onClick={resetUpload}>
+                     <Button 
+                     sx={{ 
+                     marginTop: 2,
+                     border:'1px solid rgb(115, 83, 229)',
+                     color:'rgb(115, 83, 229)',
+                     fontFamily:'Poppins'}} 
+                     onClick={resetUpload}
+                     disabled={isUserPromptDistable}
+                     >
                       Upload Another File
                      </Button>
                    </>                     
@@ -307,7 +326,12 @@ useEffect(() => {
                       <Typography sx={{color: customColors.lightgray }}>
                         {fileName} 
                       </Typography> 
-                  <Button sx={{ marginTop: 1,color:'rgb(115, 83, 229)',border:'1px solid rgb(115, 83, 229)',fontFamily:'Poppins'}} onClick={resetUpload}>
+                  <Button sx={{ 
+                    marginTop: 1,
+                    color:isUserPromptDistable?customColors.lightgray:'rgb(115, 83, 229)',
+                    border:isUserPromptDistable?'1px solid '+customColors.lightgray:'1px solid rgb(115, 83, 229)',
+                    fontFamily:'Poppins'}} 
+                    onClick={resetUpload}>
                   Upload Another File
                   </Button>
                   </>
@@ -343,7 +367,7 @@ useEffect(() => {
                 borderRadius: '5px',
                 zIndex: 1000
               }}>
-                Please upload the file first...
+                Please upload the file first !
               </div>
               </>
             ) : null} 
@@ -391,23 +415,47 @@ useEffect(() => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                gap:'4px',
                 background:'rgb(25, 22, 34)',
               }}
             >
               <Button
-                style={{
+                variant="contained"
+                sx={{
                   background:isUserPromptDistable?"rgb(99,99,99,0.1)":"rgb(115, 83, 229)",
+                  // background:"rgb(115, 83, 229)",
                   display: "flex",
                   justifyContent: "space-evenly",
                   alignItems: "center",
                   borderRadius:'9px',
                   padding:'0.5rem 1rem',
+                  '&:hover': {
+                    backgroundColor: isUserPromptDistable?"rgb(99,99,99,0.1)":"rgb(115, 83, 229)", 
+                  },
                 }}
+                onClick={handleSendMessage}
               >
               <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24">
-                <path fill="white" d="M5.536 21.886a1 1 0 0 0 1.033-.064l13-9a1 1 0 0 0 0-1.644l-13-9A1 1 0 0 0 5 3v18a1 1 0 0 0 .536.886"></path>
+                <path fill={isUserPromptDistable?customColors.lightgray:customColors.white} d="M5.536 21.886a1 1 0 0 0 1.033-.064l13-9a1 1 0 0 0 0-1.644l-13-9A1 1 0 0 0 5 3v18a1 1 0 0 0 .536.886"></path>
               </svg>
-              <Typography style={{color:customColors.white,textTransform:'none',fontFamily:'Poppins',fontSize:'0.9rem',fontWeight:'300'}}>Submit</Typography>
+              <Typography style={{color:isUserPromptDistable?customColors.lightgray:customColors.white,textTransform:'none',fontFamily:'Poppins',fontSize:'0.9rem',fontWeight:'300'}}>Submit</Typography>
+              </Button>
+              <Button 
+              sx={{
+                color:'rgb(115, 83, 229)',
+                textTransform:'none',
+                fontFamily:'Poppins',
+                '&:hover': {
+                  backgroundColor: 'rgb(115, 83, 229,0.3)', 
+                },
+                '&.Mui-disabled': {
+                  color: 'rgb(115, 83, 229,0.5)', 
+                },
+              }}
+              onClick={handleClear}
+              disabled={isUserPromptDistable}
+              >   
+                  Clear
               </Button>
             </div>
           </div>
