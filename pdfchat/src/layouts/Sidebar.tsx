@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Typography, List, ListItem, ListItemIcon, ListItemText, Tooltip } from "@mui/material";
 import Link from "next/link";
 import { styled, useMediaQuery } from "@mui/system";
@@ -36,17 +36,40 @@ const Sidebar = () => {
     setActiveIndex(index);
   };
 
-  // useEffect(() => {
-  //   const activeMenuItem = menuItems.findIndex((item) => item.path === router.pathname);
-  //   console.log(router.pathname)
-  //   setActiveIndex(activeMenuItem);
-  // }, [router.pathname]);
+  // const menuItems = [
+  //   { text: "Chat With PDF", icon: <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24">
+  //   <path fill="currentColor" d="M3 20.077V4.616q0-.691.463-1.153T4.615 3h14.77q.69 0 1.152.463T21 4.616v10.769q0 .69-.463 1.153T19.385 17H6.077zM6.5 13.5h7v-1h-7zm0-3h11v-1h-11zm0-3h11v-1h-11z"></path>
+  // </svg>, path: "/chatwithpdf" },
+  // ];
 
-  const menuItems = [
-    { text: "Chat With PDF", icon: <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24">
-    <path fill="currentColor" d="M3 20.077V4.616q0-.691.463-1.153T4.615 3h14.77q.69 0 1.152.463T21 4.616v10.769q0 .69-.463 1.153T19.385 17H6.077zM6.5 13.5h7v-1h-7zm0-3h11v-1h-11zm0-3h11v-1h-11z"></path>
-  </svg>, path: "/chatwithpdf" },
+  const generateMenuItems = () => [
+    {
+      text: "Chat With PDF",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={24}
+          height={24}
+          viewBox="0 0 24 24"
+        >
+          <path
+            fill="currentColor"
+            d="M3 20.077V4.616q0-.691.463-1.153T4.615 3h14.77q.69 0 1.152.463T21 4.616v10.769q0 .69-.463 1.153T19.385 17H6.077zM6.5 13.5h7v-1h-7zm0-3h11v-1h-11zm0-3h11v-1h-11z"
+          ></path>
+        </svg>
+      ),
+      path: "/chatwithpdf",
+    },
   ];
+
+  // Use useMemo to memoize menuItems
+  const menuItems = useMemo(() => generateMenuItems(), []);
+
+  useEffect(() => {
+    const activeMenuItem = menuItems.findIndex((item) => item.path === router.pathname);
+    console.log(router.pathname)
+    setActiveIndex(activeMenuItem);
+  }, [router.pathname,menuItems]);
 
 
   const isSmallestScreen = useMediaQuery('(min-width:900px) and (max-width:1155px)');
@@ -119,7 +142,6 @@ const Sidebar = () => {
               <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24">
 	<path fill="white" d="M8.7 15.9L4.8 12l3.9-3.9a.984.984 0 0 0 0-1.4a.984.984 0 0 0-1.4 0l-4.59 4.59a.996.996 0 0 0 0 1.41l4.59 4.6c.39.39 1.01.39 1.4 0a.984.984 0 0 0 0-1.4m6.6 0l3.9-3.9l-3.9-3.9a.984.984 0 0 1 0-1.4a.984.984 0 0 1 1.4 0l4.59 4.59c.39.39.39 1.02 0 1.41l-4.59 4.6a.984.984 0 0 1-1.4 0a.984.984 0 0 1 0-1.4"></path>
 </svg>
-            {/* <CodeIcon sx={{ color: customColors.lightlightgray }} /> */}
             </div>:
           <></>
           }
@@ -143,7 +165,6 @@ const Sidebar = () => {
                       activeIndex === index ? customColors.lightlightgray : customColors.lightgray,
                     borderLeft: activeIndex === index ? "4px solid blue" : "none",
                     "&:hover": {
-                      // backgroundColor: customColors.opacitygray,
                       background:'rgb(87, 94, 104,0.2)',
                       color: customColors.lightlightgray,
                       "& .MuiListItemIcon-root": {
@@ -191,4 +212,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-
