@@ -8,7 +8,8 @@ import { env } from "next-runtime-env";
 import ReactMarkdown from "react-markdown"; 
 import {BouncingDotsLoader} from "../../components/threeBubbleAnimation"
 import { customColors } from "@/layouts/customColors";
- 
+import { handleError } from "@/components/commonComponents/handleError";
+import toast, { Toaster } from 'react-hot-toast';
  
  
 const ChatWithPDF = () => {
@@ -22,6 +23,7 @@ const ChatWithPDF = () => {
   const [isFocused,setIsFocused]=useState(false)
   const [isUserPromptDistable,setIsUserPromptDisable]=useState(false)
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [loading,setLoading]=useState(false)
   
 
   const handleFileUpload = (file: File) => {
@@ -32,9 +34,22 @@ const ChatWithPDF = () => {
       if (file!==undefined){
         setStep("complete");
         setIsFileUploadSuccess(true)
+        toast.success("File uploaded successfully!", {
+          style: {
+            background: "rgb(0,0,0,0.3)",
+            color: "#ccc",
+          },
+        })
         setTimeout(() => {
           setIsFileUploadSuccess(false)
       }, 2500);
+      }else{
+        toast.error("Some Error occurred!", {
+          style: {
+            background: "rgb(0,0,0,0.3)",
+            color: "#ccc",
+          },
+        })
       }
   };
  
@@ -46,7 +61,7 @@ const ChatWithPDF = () => {
  
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: handleDrop,
-    multiple: false,
+    multiple: true,
     accept: {
           "application/pdf": [".pdf"],
     },
@@ -70,6 +85,12 @@ const handleSendMessage = () => {
     setUserchat("");
     if (fileObject===undefined){
       setIsFileUploaded("notuploaded")
+      toast.error("Please upload the file first!", {
+        style: {
+          background: "rgb(0,0,0,0.3)",
+          color: "#ccc",
+        },
+      });
       setTimeout(()=>{
         setIsFileUploaded("initial")
       },2000)
@@ -82,39 +103,70 @@ const handleSendMessage = () => {
 
 
 const makePostRequest = () => {
-  const url = "https://pdf-qa.test.devapp.nyc1.initz.run/upload_pdf_and_ask";
-  const formData = new FormData();
+    setLoading(true)
+    const url = "https://pdf-qa.test.devapp.nyc1.initz.run/upload_pdf_and_ask";
+    const formData = new FormData();
     if (fileObject!==undefined){
       formData.append('file', fileObject);
       formData.append('question', userchat);
-      formData.append('streaming', 'true');
+      formData.append('stream', 'true');
     }else{
       setIsFileUploaded("notuploaded");
     }
-    setIsUserPromptDisable(true)
-    const source = new SSE(url || "", {
-      method: "POST",
-      payload: formData,
-    });
-
-  source.addEventListener("message", (e: any) => {
-      const promptValue = e.data;
-      if (promptValue !== "[DONE]") {
-        const payload = JSON.parse(promptValue);
-        const newText = payload.choices[0].delta.content;
+    try{
+      setIsUserPromptDisable(true)
+      const source = new SSE(url || "", {
+        method: "POST",
+        payload: formData,
+      });
+      source.addEventListener("error", (error: any) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(error.data, 'text/html');
+        
+        // Extract the text content
+        const titleElement = doc.querySelector('title');
+        const title = titleElement ? titleElement.textContent : '';
+        setLoading(false)
         setMessages((prevMessages) => {
           const lastMessage = prevMessages[prevMessages.length - 1];
           return [
             ...prevMessages.slice(0, -1),
-            { user: lastMessage.user, ai: lastMessage.ai + newText },
+            { user: lastMessage.user, ai: lastMessage.ai + title+": Something went wrong on our end. Please try again later." },
           ];
         });
-      } else {
-        setIsUserPromptDisable(false)
+        setIsUserPromptDisable(false);
         source.close();
-      }
-    });
-  
+      });
+      try{
+        source.addEventListener("message", (e: any) => {
+         const promptValue = e.data;
+         if (promptValue !== "[DONE]") {
+           const payload = JSON.parse(promptValue);
+           const newText = payload.choices[0].delta.content;
+           setMessages((prevMessages) => {
+             const lastMessage = prevMessages[prevMessages.length - 1];
+             return [
+               ...prevMessages.slice(0, -1),
+               { user: lastMessage.user, ai: lastMessage.ai + newText },
+             ];
+           });
+         } else {
+           setIsUserPromptDisable(false)
+           setLoading(false)
+           source.close();
+         }
+   
+       });
+     }catch(err){
+        setIsUserPromptDisable(false)
+        setLoading(false)
+        console.log("error")
+     }
+    }catch(err:any){
+          setIsUserPromptDisable(false)
+          setLoading(false)
+         console.log(handleError(err))
+    }
 };
 
 
@@ -157,11 +209,12 @@ const renderMessages = () => {
          (<ReactMarkdown>
           {msg.ai}
          </ReactMarkdown>):
-         (<BouncingDotsLoader/>)
+         (loading?<BouncingDotsLoader/>:msg.ai)
         }
       </div>
       </div>
       <div ref={messagesEndRef} />
+      
     </div>
   ));
 };
@@ -195,6 +248,15 @@ const handleClear=()=>{
     setMessages([])
   }
 }
+
+const contextClass = {
+  success: "bg-gray-600",
+  error: "bg-red-600",
+  info: "bg-gray-600",
+  warning: "bg-orange-400",
+  default: "bg-indigo-600",
+  dark: "bg-white-600 font-gray-300",
+};
 
 
   return (
@@ -249,7 +311,6 @@ const handleClear=()=>{
                         padding:'0.5rem 1rem',
                         borderRadius: 2,
                         width: "60%",
-                        // maxWidth: 400,
                         textAlign: "center",
                         cursor: "pointer",
                         transition: "background-color 0.3s",
@@ -290,24 +351,6 @@ const handleClear=()=>{
                   )}
 
                  {fileUploadSuccess?step === "complete" && (
-                     <>
-
-                     <div style={{
-                       position: 'fixed',
-                       background:'rgb(25, 22, 34,0.9)',
-                      // background:'red',
-                       boxShadow:'rgba(0, 0, 0, 0.15) 0px 3px 3px 0px',
-                       color: '#64bf6a',
-                       transition: 'opacity 0.10s ease-in-out',
-                       top: '2px',
-                       left: '60%',
-                       transform: 'translateX(-50%)',
-                       padding: '10px 50px',
-                       borderRadius: '5px',
-                       zIndex: 1000
-                     }}>
-                       {fileName} uploaded successfully!
-                     </div>
 
                      <Button 
                      sx={{ 
@@ -319,8 +362,7 @@ const handleClear=()=>{
                      disabled={isUserPromptDistable}
                      >
                       Upload Another File
-                     </Button>
-                   </>                     
+                     </Button>           
                  ):step==="complete" && (
                   <>
                       <Typography sx={{color: customColors.lightgray }}>
@@ -338,6 +380,7 @@ const handleClear=()=>{
                  )}
   
                 </Box>
+                <Toaster position="top-right"/>
               </div>
           
           <div style={{ minHeight: '400px' }}>
@@ -354,21 +397,7 @@ const handleClear=()=>{
               <div style={{ padding: '1.5rem' }}>
                {renderMessages()}
               </div>
-              <div style={{
-                position: 'fixed',
-                background:'rgb(25, 22, 34,0.9)',
-                boxShadow:'rgba(0, 0, 0, 0.15) 0px 3px 3px 0px',
-                color: '#f94449',
-                transition: 'opacity 0.10s ease-in-out',
-                top: '2px',
-                left: '60%',
-                transform: 'translateX(-50%)',
-                padding: '10px 20px',
-                borderRadius: '5px',
-                zIndex: 1000
-              }}>
-                Please upload the file first !
-              </div>
+              <Toaster position="top-right"/>
               </>
             ) : null} 
           </div>
@@ -423,7 +452,6 @@ const handleClear=()=>{
                 variant="contained"
                 sx={{
                   background:isUserPromptDistable?"rgb(99,99,99,0.1)":"rgb(115, 83, 229)",
-                  // background:"rgb(115, 83, 229)",
                   display: "flex",
                   justifyContent: "space-evenly",
                   alignItems: "center",
